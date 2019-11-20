@@ -5,10 +5,10 @@ export default class User extends Model {
 
   static fields() {
     return {
-      id: this.attr(null),
-      name: this.attr(''),
-      login: this.attr(''),
-      password: this.attr(''),
+      id: this.increment(),
+      name: this.string(''),
+      login: this.string(''),
+      password: this.string(''),
     }
   }
 }
