@@ -13,6 +13,7 @@ export default class Operation extends Model{
       operation_status_id: this.number(),
       date: this.number(),
       description: this.string(''),
+      items: this.hasMany(Item, 'operation_id')
     }
   }
 }

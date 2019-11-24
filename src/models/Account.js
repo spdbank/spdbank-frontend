@@ -11,6 +11,7 @@ export default class Account extends Model {
       user_id: this.number(1),
       account_type_id: this.number(1),
       currency_id: this.number(1),
+      initial_amount: this.number(0),
       name: this.string(''),
       description: this.string(''),
       owner: this.belongsTo(User, 'user_id'),
