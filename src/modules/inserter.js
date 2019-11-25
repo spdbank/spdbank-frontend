@@ -9,7 +9,7 @@ export const inserter = {
     let result
     if(obj instanceof Array){
       await Promise.all(obj.map(async o => await this.insertOne(model, o, foreign))
-      ).then(results => result = results)
+      ).then(results => result = results.map(res => res.accounts).flat())
     } else if(obj instanceof Object) {
       result = await this.insertOne(model, obj, foreign)
     }
