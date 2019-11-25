@@ -1,5 +1,5 @@
 import { Model } from '@vuex-orm/core'
-import Account from '@/module/Account'
+import Account from '@/models/Account'
 
 export default class AccountType extends Model{
   static entity = 'account_types'

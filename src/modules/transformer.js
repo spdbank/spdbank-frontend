@@ -37,10 +37,10 @@ export const transformer = {
     const account = this.homebank.account
     if(account){
       const result = account.map(acc => {
+        const currency = this.homebank.cur.find(c => c.key == acc.curr)
         return {
-          id: acc.key,
           account_type_id: acc.type,
-          currency_id: acc.curr,
+          currency: currency ? { name: currency.name } : null,
           initial_amount: acc.initial,
           name: acc.name,
         }
@@ -54,7 +54,6 @@ export const transformer = {
     if(cur){
       this.result.currencies = cur.map(c => {
         return {
-          id: c.key,
           default: (c.rate && c.rate !== '0') ? false : true,
           value: (c.rate && c.rate !== '0') ? c.rate : 1,
           name: c.name,
@@ -68,9 +67,8 @@ export const transformer = {
   partners(){
     const pay = this.homebank.pay
     if(pay){
-      this.result.partners = pay.forEach(p => {
+      this.result.partners = pay.map(p => {
         return {
-          id: p.key,
           name: p.name
         }
       })
@@ -80,20 +78,18 @@ export const transformer = {
   categories(){
     const cat = this.homebank.cat
     if(cat){
-      const categories = []
-      const subcategories = []
-      cat.forEach(c => {
-        if(c.parent){
-          subcategories.push({
-            id: c.key,
-            category_id: c.parent,
-            name: c.name,
-          })
-        } else {
-          categories.push({
-            id: c.key,
-            name: c.name,
-          })
+      let categories = cat.filter(c => c.parent === undefined)
+      let subcategories = cat.filter(c => c.parent !== undefined)
+      categories = categories.map(c => {
+        return {
+          name: c.name,
+        }
+      })
+      subcategories = subcategories.map(s => {
+        const parent = cat.find(c => c.key == s.parent)
+        return {
+          name: s.name,
+          category: parent ? { name: parent.name } : null
         }
       })
       this.result.categories = categories
@@ -105,9 +101,11 @@ export const transformer = {
     const ope = this.homebank.ope
     if(ope){
       this.result.operations = ope.map(o => {
+        const account = this.homebank.account.find(acc => acc.key == o.account)
+        const partner = this.homebank.pay.find(acc => acc.key == o.payee)
         return {
-          account_id: o.account,
-          partner_id: o.payee,
+          account: account ? { name: account.name } : null,
+          partner: partner ? { name: partner.name } : null,
           payment_id: o.paymode,
           operation_status_id: o.st,
           date: this.serialDateNumber_to_timestamp(o.date),
@@ -121,16 +119,18 @@ export const transformer = {
     if(operation){
       const result = []
       if(operation.category){
+        const category = this.homebank.cat.find(c => c.key == operation.category)
         result.push({
-          subcategory_id: operation.category,
+          subcategory: category ? { name: category.name } : null,
           description: operation.info,
           amount: operation.amount,
         })
-      } else if(operation.scat instanceof Array){
+      } else if(operation.scat){
         const num = operation.scat.split('||').length
         for(let i = 0; i < num; i++){
+          const category = this.homebank.cat.find(c => c.key == operation.scat.split('||')[i])
           result.push({
-            subcategory_id: operation.scat.split('||')[i],
+            subcategory: category ? { name: category.name } : null,
             description: operation.smem.split('||')[i],
             amount: operation.samt.split('||')[i],
           })

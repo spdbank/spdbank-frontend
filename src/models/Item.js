@@ -1,4 +1,6 @@
 import { Model } from '@vuex-orm/core'
+import Subcategory from '@/models/Subcategory'
+import Operation from '@/models/Operation'
 
 export default class Item extends Model{
   static entity = 'items'
@@ -10,6 +12,8 @@ export default class Item extends Model{
       operation_id: this.number(),
       description: this.string(),
       amount: this.number(),
+      subcategory: this.belongsTo(Subcategory, 'subcategory_id'),
+      operation: this.belongsTo(Operation, 'operation_id'),
     }
   }
 }
