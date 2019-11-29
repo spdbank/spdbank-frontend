@@ -10,10 +10,11 @@ export const transformer = {
     this.homebank = data.homebank
     if(this.homebank){
       this.user()
+      this.accounts()
       this.currencies()
       this.partners()
       this.categories()
-      this.operations()
+      this.items()
     }
     return this.result
   },
@@ -28,7 +29,6 @@ export const transformer = {
     if(properties){
       this.result.users = {
         name: properties.title,
-        accounts: this.accounts()
       }
     }
   },
@@ -36,16 +36,16 @@ export const transformer = {
   accounts(){
     const account = this.homebank.account
     if(account){
-      const result = account.map(acc => {
+      this.result.accounts = account.map(acc => {
         const currency = this.homebank.cur.find(c => c.key == acc.curr)
         return {
           account_type_id: acc.type,
           currency: currency ? { name: currency.name } : null,
           initial_amount: acc.initial,
           name: acc.name,
+          owner: { name: this.homebank.properties.title }
         }
       })
-      return result
     }
   },
 
@@ -97,35 +97,24 @@ export const transformer = {
     }
   },
 
-  operations(){
-    const ope = this.homebank.ope
-    if(ope){
-      this.result.operations = ope.map(o => {
-        const account = this.homebank.account.find(acc => acc.key == o.account)
-        const partner = this.homebank.pay.find(acc => acc.key == o.payee)
-        return {
-          account: account ? { name: account.name } : null,
-          partner: partner ? { name: partner.name } : null,
-          payment_id: o.paymode,
-          operation_status_id: o.st,
-          date: this.serialDateNumber_to_timestamp(o.date),
-          items: this.items(o),
-        }
-      })
-    }
+  items(){
+    this.result.items = []
+    this.result.items.push(this.homebank.ope.map(operation => this.itemsOfOperation(operation)))
+    this.result.items = this.result.items.flat(Infinity)
   },
 
-  items(operation){
+  itemsOfOperation(operation){
     if(operation){
       const result = []
-      if(operation.category){
+      if(operation.amount && !(operation.samt || operation.scat || operation.smem)){
         const category = this.homebank.cat.find(c => c.key == operation.category)
         result.push({
           subcategory: category ? { name: category.name } : null,
           description: operation.info,
           amount: operation.amount,
+          operation: this.operation(operation),
         })
-      } else if(operation.scat){
+      } else if(operation.samt || operation.scat || operation.smem){
         const num = operation.scat.split('||').length
         for(let i = 0; i < num; i++){
           const category = this.homebank.cat.find(c => c.key == operation.scat.split('||')[i])
@@ -133,10 +122,23 @@ export const transformer = {
             subcategory: category ? { name: category.name } : null,
             description: operation.smem.split('||')[i],
             amount: operation.samt.split('||')[i],
+            operation: this.operation(operation),
           })
         }
       }
       return result
+    }
+  },
+
+  operation(operation){
+    const account = this.homebank.account.find(acc => acc.key == operation.account)
+    const partner = this.homebank.pay.find(acc => acc.key == operation.payee)
+    return {
+      account: account ? { name: account.name } : null,
+      partner: partner ? { name: partner.name } : null,
+      payment_id: operation.paymode,
+      operation_status_id: operation.st,
+      date: this.serialDateNumber_to_timestamp(operation.date),
     }
   },
 
