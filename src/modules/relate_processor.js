@@ -8,12 +8,10 @@ export const relateProcessor = {
   // async processManyRelate(model, obj, foreign){
   async processManyRelate(model, obj){
     const foreign = await this.makeForeign(model, obj)
-    let result
     if(obj instanceof Array){
-      await Promise.all(obj.map(async o => await this.insertOne(model, o, foreign))
-      ).then(results => result = results.map(res => res.accounts).flat())
+      await obj.map(async o =>await this.insertOne(model, o, foreign))
     } else if(obj instanceof Object) {
-      result = await this.insertOne(obj, foreign)
+      await this.insertOne(obj, foreign)
     }
     return obj
   },
@@ -22,10 +20,10 @@ export const relateProcessor = {
     const fields = model.fields()
     const belongsToProps = Object.keys(obj).filter(prop => fields[prop] && fields[prop].constructor.name == 'BelongsTo')
     const result = belongsToProps.map(prop => obj[prop] ? ({ prop: prop }) : null).filter(foreign => foreign)
-    result.forEach(async foreign => {
+    await result.forEach(async foreign => {
       foreign.prop_id = await fields[foreign.prop].foreignKey
       foreign.model = fields[foreign.prop].parent
-      foreign.keys = Object.keys(obj[foreign.prop]).filter(key => Object.keys(foreign.model.fields()).includes(key))
+      foreign.keys = Object.keys(obj[foreign.prop]).filter(key => !['BelongsTo'].includes(foreign.model.fields()[key].constructor.name))
     })
     return result
   },
@@ -42,8 +40,7 @@ export const relateProcessor = {
   },
 
   async processForeignOne(obj, foreign){
-    const foundForeignObjects = await this.findForeignOne(obj, foreign)
-    await this.setForeignOneId(obj, foreign, foundForeignObjects)
+    await this.setForeignOneId(obj, foreign, await this.findForeignOne(obj, foreign))
   },
 
   async findForeignOne(obj, foreign){

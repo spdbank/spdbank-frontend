@@ -32,7 +32,12 @@ export default class Account extends Model {
 
   static async processRelates(data){
     if(data instanceof Array){
-      return await Promise.all(await data.map(async d => await relateProcessor.processManyRelate(this, d)))
+      let result = []
+      for(let i = 0; i < data.length; i++){
+        const d = data[i]
+        result.push(await relateProcessor.processManyRelate(this, d))
+      }
+      return result
     } else {
       return await relateProcessor.processManyRelate(this, data)
     }

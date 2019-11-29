@@ -1,9 +1,9 @@
-const parserModule = {
+export const parserModule = {
   parse(xml){
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xml, "text/xml");
     const result = this.DOMtoObj(xmlDoc)
-    return result
+    return JSON.parse(result)
   },
 
   DOMtoObj(XmlDoc){
@@ -82,5 +82,3 @@ const parserModule = {
     }
   },
 }
-
-export default parserModule
