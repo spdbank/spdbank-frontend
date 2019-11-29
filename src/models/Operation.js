@@ -5,6 +5,8 @@ import Partner from '@/models/Partner'
 import Payment from '@/models/Payment'
 import OperationStatus from '@/models/OperationStatus'
 
+import { relateProcessor } from '@/modules/relate_processor'
+
 export default class Operation extends Model{
   static entity = "operations"
 
@@ -22,6 +24,19 @@ export default class Operation extends Model{
       partner: this.belongsTo(Partner, 'partner_id'),
       payment: this.belongsTo(Payment, 'payment_id'),
       operation_status: this.belongsTo(OperationStatus, 'operation_status_id'),
+    }
+  }
+
+  static async insert(...args){
+    await this.processRelates(args[0].data)
+    return await super.insert(...args)
+  }
+
+  static async processRelates(data){
+    if(data instanceof Array){
+      return await Promise.all(await data.map(async d => await relateProcessor.processManyRelate(this, d)))
+    } else {
+      return await relateProcessor.processManyRelate(this, data)
     }
   }
 }

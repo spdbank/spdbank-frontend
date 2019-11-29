@@ -4,6 +4,8 @@ import Operation from '@/models/Operation'
 import AccountType from '@/models/AccountType'
 import Currency from '@/models/Currency'
 
+import { relateProcessor } from '@/modules/relate_processor'
+
 export default class Account extends Model {
   static entity = 'accounts'
 
@@ -20,6 +22,19 @@ export default class Account extends Model {
       account_type: this.belongsTo(AccountType, 'account_type_id'),
       currency: this.belongsTo(Currency, 'currency_id'),
       operations: this.hasMany(Operation, 'account_id')
+    }
+  }
+
+  static async insert(...args){
+    await this.processRelates(args[0].data)
+    return await super.insert(...args)
+  }
+
+  static async processRelates(data){
+    if(data instanceof Array){
+      return await Promise.all(await data.map(async d => await relateProcessor.processManyRelate(this, d)))
+    } else {
+      return await relateProcessor.processManyRelate(this, data)
     }
   }
 }
