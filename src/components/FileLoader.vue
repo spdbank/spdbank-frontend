@@ -1,7 +1,10 @@
 <template>
   <div ref="dragArea" class="uploader">
-    <input type="file" class="visually-hidden">
-    <button class="uploader__button">Загрузить Файл</button>
+    <label class="uploader__button">
+      Загрузить Файл
+      <input @change="handleFileChange" ref="input" tabindex="-1" type="file" class="visually-hidden">
+    </label>
+    <button></button>
   </div>
 </template>
 
@@ -20,6 +23,13 @@ export default {
     this.addEventHandlers()
   },
   methods:{
+    async handleFileChange(e){
+      const input = e.target
+      if(input.files.length > 0 && input.files[0].type === 'application/x-homebank'){
+        const xmlHomebank = await input.files[0].text()
+        this.importXmlHomebank(xmlHomebank)
+      }
+    },
     addEventHandlers(){
       dragDropModule.addDragEvents(this)
     },
