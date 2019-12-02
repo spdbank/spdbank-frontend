@@ -1,11 +1,4 @@
 export const relateProcessor = {
-  // foreign is array of objects like {
-  //              prop_id: |property of main obj to save id
-  //              prop: |property of main obj|,
-  //              model: |foreign model|,
-  //              keys: |prop of foreign to find|
-  //           }
-  // async processManyRelate(model, obj, foreign){
   async processManyRelate(model, obj){
     const foreign = await this.makeForeign(model, obj)
     if(obj instanceof Array){
@@ -15,6 +8,13 @@ export const relateProcessor = {
     }
     return obj
   },
+
+  // foreign is array of objects like {
+  //              prop_id: |property of main obj to save id
+  //              prop: |property of main obj|,
+  //              model: |foreign model|,
+  //              keys: |prop of foreign to find|
+  //           }
 
   async makeForeign(model, obj){
     const fields = model.fields()
